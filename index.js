@@ -13,8 +13,8 @@ app.get('/', (req, res) => {
 res.send('Server is Running')
 }) 
 
-app.listen( ()=>{
-console.log(`Server is running on port ${port}`);
+app.listen( port, ()=>{
+console.log(`Server listening on ${port}`);
 })
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -30,6 +30,23 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const toyCollection = client.db("toyDB").collection("allToysCollection");
+
+    app.post('/allToys', async (req, res) => {
+        const addedToy = req.body;
+        console.log(addedToy);
+        const result = await toyCollection.insertOne(addedToy);
+        res.send(result);
+    })
+     app.get ('/allToys', async (req, res) => {
+      const cursor = toyCollection.find()
+      const allToys = await cursor.toArray();
+      console.log(allToys);
+      res.send(allToys);
+     })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -40,12 +57,3 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-
-
-
-
-
-
-// 
-// 
