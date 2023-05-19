@@ -9,13 +9,7 @@ const app = express();
 app.use(cors())
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Server is Running')
-})
 
-app.listen(port, () => {
-  console.log(`Server listening on ${port}`);
-})
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -28,21 +22,19 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+
+
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const toyCollection = client.db("toyDB").collection("allToysCollection");
 
-
-    app.post('/allToys', async (req, res) => {
-      const addedToy = req.body;
-      const result = await toyCollection.insertOne(addedToy);
-      res.send(result);
-    })
     app.get('/allToys', async (req, res) => {
       const cursor = toyCollection.find()
       const allToys = await cursor.toArray();
       res.send(allToys);
     })
+
     app.get('/allToys/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
@@ -50,32 +42,45 @@ async function run() {
       res.send(result);
     })
 
-
-    const indexKeys = {toyName: 1};
-    const indexOptions = {name : "toy"};
-    const result = await toyCollection.createIndex(indexKeys, indexOptions)
-    app.get('/allToys/:text', async (req, res) => {
-      const searchText = req.params.text;
-      const result = await toyCollection.find({
-        $or: [
-          { toy : { $regex : searchText, $options : "i" } }
-        ],
-      }).toArray();
-      console.log(result);
-      res.send(result) ;
-
+    app.post('/allToys', async (req, res) => {
+      const addedToy = req.body;
+      const result = await toyCollection.insertOne(addedToy);
+      res.send(result);
     })
 
 
 
 
 
+    // const indexKeys = {toyName: 1};
+    // const indexOptions = {name : "toy"};
+    // const result = await toyCollection.createIndex(indexKeys, indexOptions)
+    // app.get('/allToys/:text', async (req, res) => {
+    //   const searchText = req.params.text;
+    //   const result = await toyCollection.find({
+    //     $or: [
+    //       { toy : { $regex : searchText, $options : "i" } }
+    //     ],
+    //   }).toArray();
+    //   console.log(result);
+    //   res.send(result) ;
+    // })
+  
     app.get('/myToys/:email', async (req, res) => {
       const email = req.params.email;
       const query = { sellerEmail: email };
       const result = await toyCollection.find(query).toArray();
       res.send(result);
     })
+    app.delete('/myToys/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await toyCollection.deleteOne(query);
+      res.send(result);
+    })
+
+
+
 
 
 
@@ -88,4 +93,14 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
+
+
+app.get('/', (req, res) => {
+  res.send('Server is Running')
+})
+
+app.listen(port, () => {
+  console.log(`Server listening on ${port}`);
+})
 
