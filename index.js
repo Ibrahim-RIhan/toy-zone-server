@@ -10,11 +10,11 @@ app.use(cors())
 app.use(express.json());
 
 app.get('/', (req, res) => {
-res.send('Server is Running')
-}) 
+  res.send('Server is Running')
+})
 
-app.listen( port, ()=>{
-console.log(`Server listening on ${port}`);
+app.listen(port, () => {
+  console.log(`Server listening on ${port}`);
 })
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -30,32 +30,53 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-
     const toyCollection = client.db("toyDB").collection("allToysCollection");
 
+
     app.post('/allToys', async (req, res) => {
-        const addedToy = req.body;
-        const result = await toyCollection.insertOne(addedToy);
-        res.send(result);
+      const addedToy = req.body;
+      const result = await toyCollection.insertOne(addedToy);
+      res.send(result);
     })
-     app.get ('/allToys', async (req, res) => {
+    app.get('/allToys', async (req, res) => {
       const cursor = toyCollection.find()
       const allToys = await cursor.toArray();
       res.send(allToys);
-     })
-     app.get('/allToys/:id', async (req, res) =>{
+    })
+    app.get('/allToys/:id', async (req, res) => {
       const id = req.params.id;
-      const  query = {_id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) }
       const result = await toyCollection.findOne(query);
       res.send(result);
-     })
-     app.get('/myToys/:email', async (req, res) =>{
+    })
+
+
+    const indexKeys = {toyName: 1};
+    const indexOptions = {name : "toy"};
+    const result = await toyCollection.createIndex(indexKeys, indexOptions)
+    app.get('/allToys/:text', async (req, res) => {
+      const searchText = req.params.text;
+      const result = await toyCollection.find({
+        $or: [
+          { toy : { $regex : searchText, $options : "i" } }
+        ],
+      }).toArray();
+      console.log(result);
+      res.send(result) ;
+
+    })
+
+
+
+
+
+    app.get('/myToys/:email', async (req, res) => {
       const email = req.params.email;
-      console.log(email);
-      const  query = {sellerEmail : email};
+      const query = { sellerEmail: email };
       const result = await toyCollection.find(query).toArray();
       res.send(result);
-     })
+    })
+
 
 
     // Send a ping to confirm a successful connection
