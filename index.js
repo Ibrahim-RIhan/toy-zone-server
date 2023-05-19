@@ -49,6 +49,13 @@ async function run() {
       const result = await toyCollection.findOne(query);
       res.send(result);
      })
+     app.get('/myToys/:email', async (req, res) =>{
+      const email = req.params.email;
+      console.log(email);
+      const  query = {sellerEmail : email};
+      const result = await toyCollection.find(query).toArray();
+      res.send(result);
+     })
 
 
     // Send a ping to confirm a successful connection
