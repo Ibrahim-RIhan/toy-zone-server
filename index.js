@@ -24,7 +24,6 @@ async function run() {
   try {
 
 
-
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const toyCollection = client.db("toyDB").collection("allToysCollection");
@@ -52,19 +51,22 @@ async function run() {
 
 
 
-    // const indexKeys = {toyName: 1};
-    // const indexOptions = {name : "toy"};
-    // const result = await toyCollection.createIndex(indexKeys, indexOptions)
-    // app.get('/allToys/:text', async (req, res) => {
-    //   const searchText = req.params.text;
-    //   const result = await toyCollection.find({
-    //     $or: [
-    //       { toy : { $regex : searchText, $options : "i" } }
-    //     ],
-    //   }).toArray();
-    //   console.log(result);
-    //   res.send(result) ;
-    // })
+    const indexKeys = { toyName: 1 };
+    const indexOptions = { name : "toy" };
+    const result = await toyCollection.createIndex(indexKeys, indexOptions);
+
+    app.get('/toySearch/:text', async (req, res) => {
+      const searchText = req.params.text;
+      console.log(searchText);
+      const result = await toyCollection.find({
+        $or: [
+          { toyName: { $regex: searchText , $options: "i" } }
+        ],
+      }).toArray();
+      console.log(result);
+      res.send(result);
+    });
+
 
     app.get('/myToys/:email', async (req, res) => {
       const email = req.params.email;
