@@ -27,11 +27,23 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const toyCollection = client.db("toyDB").collection("allToysCollection");
+    const shopToyCollection = client.db("toyDB").collection("shopToyCollection");
+    console.log(shopToyCollection);
 
     app.get('/allToys', async (req, res) => {
       const cursor = toyCollection.find()
       const allToys = await cursor.toArray();
       res.send(allToys);
+    })
+    app.get('/shopToys/:text', async (req, res) => {
+      const activeTab = req.params.text;
+      if( activeTab === 'Marvel' || activeTab === 'DC Comics' || activeTab ==='Star Wars'){
+
+        console.log(activeTab);
+        const cursor = shopToyCollection.find({category : activeTab})
+        const allToys = await cursor.toArray();
+        return  res.send(allToys);
+      }
     })
 
     app.get('/allToys/:id', async (req, res) => {
@@ -52,7 +64,7 @@ async function run() {
 
 
     const indexKeys = { toyName: 1 };
-    const indexOptions = { name : "toy" };
+    const indexOptions = { name: "toy" };
     const result = await toyCollection.createIndex(indexKeys, indexOptions);
 
     app.get('/toySearch/:text', async (req, res) => {
@@ -60,7 +72,7 @@ async function run() {
       console.log(searchText);
       const result = await toyCollection.find({
         $or: [
-          { toyName: { $regex: searchText , $options: "i" } }
+          { toyName: { $regex: searchText, $options: "i" } }
         ],
       }).toArray();
       console.log(result);
@@ -68,12 +80,18 @@ async function run() {
     });
 
 
+
     app.get('/myToys/:email', async (req, res) => {
       const email = req.params.email;
+      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
       const query = { sellerEmail: email };
-      const result = await toyCollection.find(query).toArray();
+      const result = await toyCollection
+        .find(query)
+        .collation( { locale: 'en_US', numericOrdering: true } )
+        .sort({ price: sortOrder })
+        .toArray();
       res.send(result);
-    })
+    });
 
 
 
