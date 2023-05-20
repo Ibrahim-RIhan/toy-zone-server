@@ -37,7 +37,7 @@ async function run() {
     })
     app.get('/shopToys/:text', async (req, res) => {
       const activeTab = req.params.text;
-      if( activeTab === 'Marvel' || activeTab === 'DC Comics' || activeTab ==='Star Wars'){
+      if( activeTab === 'Marvel' || activeTab === 'DC Comics' || activeTab ==='Transformers'){
 
         console.log(activeTab);
         const cursor = shopToyCollection.find({category : activeTab})
@@ -45,6 +45,16 @@ async function run() {
         return  res.send(allToys);
       }
     })
+
+    app.get('/shopToys/details/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) }
+      const result = await shopToyCollection.findOne(query);
+      res.send(result);
+    })   
+
+
 
     app.get('/allToys/:id', async (req, res) => {
       const id = req.params.id;
