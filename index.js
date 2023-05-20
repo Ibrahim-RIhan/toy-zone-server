@@ -25,7 +25,7 @@ async function run() {
 
 
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const toyCollection = client.db("toyDB").collection("allToysCollection");
     const shopToyCollection = client.db("toyDB").collection("shopToyCollection");
     console.log(shopToyCollection);
@@ -37,22 +37,20 @@ async function run() {
     })
     app.get('/shopToys/:text', async (req, res) => {
       const activeTab = req.params.text;
-      if( activeTab === 'Marvel' || activeTab === 'DC Comics' || activeTab ==='Transformers'){
-
-        console.log(activeTab);
-        const cursor = shopToyCollection.find({category : activeTab})
+      if (activeTab === 'Marvel' || activeTab === 'DC Comics' || activeTab === 'Transformers') {
+        const cursor = shopToyCollection.find({ category: activeTab })
         const allToys = await cursor.toArray();
-        return  res.send(allToys);
+        return res.send(allToys);
       }
     })
 
     app.get('/shopToys/details/:id', async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const query = { _id: new ObjectId(id) }
       const result = await shopToyCollection.findOne(query);
       res.send(result);
-    })   
+    })
 
 
 
@@ -73,19 +71,18 @@ async function run() {
 
 
 
-    const indexKeys = { toyName: 1 };
-    const indexOptions = { name: "toy" };
-    const result = await toyCollection.createIndex(indexKeys, indexOptions);
+    // const indexKeys = { toyName: 1 };
+    // const indexOptions = { name: "toy" };
+    // const result = await toyCollection.createIndex(indexKeys, indexOptions);
 
     app.get('/toySearch/:text', async (req, res) => {
       const searchText = req.params.text;
-      console.log(searchText);
       const result = await toyCollection.find({
         $or: [
           { toyName: { $regex: searchText, $options: "i" } }
         ],
       }).toArray();
-      console.log(result);
+
       res.send(result);
     });
 
@@ -97,7 +94,7 @@ async function run() {
       const query = { sellerEmail: email };
       const result = await toyCollection
         .find(query)
-        .collation( { locale: 'en_US', numericOrdering: true } )
+        .collation({ locale: 'en_US', numericOrdering: true })
         .sort({ price: sortOrder })
         .toArray();
       res.send(result);
@@ -107,10 +104,10 @@ async function run() {
 
     app.put('/myToys/:id', async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const filter = { _id: new ObjectId(id) };
       const updatedToy = req.body;
-      console.log(updatedToy);
+
       const option = { upsert: true }
       const updatedDoc = {
         $set: {
