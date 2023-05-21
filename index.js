@@ -26,19 +26,24 @@ async function run() {
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
+    // const shopToyCollection = client.db("toyDB").collection("shopToyCollection");
+        // const indexKeys = { toyName: 1 };
+    // const indexOptions = { name: "toy" };
+    // const result = await toyCollection.createIndex(indexKeys, indexOptions);
     const toyCollection = client.db("toyDB").collection("allToysCollection");
-    const shopToyCollection = client.db("toyDB").collection("shopToyCollection");
-    console.log(shopToyCollection);
+  
 
     app.get('/allToys', async (req, res) => {
       const cursor = toyCollection.find()
       const allToys = await cursor.toArray();
       res.send(allToys);
     })
+
+
     app.get('/shopToys/:text', async (req, res) => {
       const activeTab = req.params.text;
       if (activeTab === 'Marvel' || activeTab === 'DC Comics' || activeTab === 'Transformers') {
-        const cursor = shopToyCollection.find({ category: activeTab })
+        const cursor = toyCollection.find({ category: activeTab })
         const allToys = await cursor.toArray();
         return res.send(allToys);
       }
@@ -46,9 +51,8 @@ async function run() {
 
     app.get('/shopToys/details/:id', async (req, res) => {
       const id = req.params.id;
-
       const query = { _id: new ObjectId(id) }
-      const result = await shopToyCollection.findOne(query);
+      const result = await toyCollection.findOne(query);
       res.send(result);
     })
 
@@ -61,19 +65,13 @@ async function run() {
       res.send(result);
     })
 
+
     app.post('/allToys', async (req, res) => {
       const addedToy = req.body;
       const result = await toyCollection.insertOne(addedToy);
       res.send(result);
     })
 
-
-
-
-
-    // const indexKeys = { toyName: 1 };
-    // const indexOptions = { name: "toy" };
-    // const result = await toyCollection.createIndex(indexKeys, indexOptions);
 
     app.get('/toySearch/:text', async (req, res) => {
       const searchText = req.params.text;
@@ -82,7 +80,6 @@ async function run() {
           { toyName: { $regex: searchText, $options: "i" } }
         ],
       }).toArray();
-
       res.send(result);
     });
 
@@ -104,10 +101,8 @@ async function run() {
 
     app.put('/myToys/:id', async (req, res) => {
       const id = req.params.id;
-
       const filter = { _id: new ObjectId(id) };
       const updatedToy = req.body;
-
       const option = { upsert: true }
       const updatedDoc = {
         $set: {
@@ -122,18 +117,12 @@ async function run() {
     });
 
 
-
-
     app.delete('/myToys/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await toyCollection.deleteOne(query);
       res.send(result);
     })
-
-
-
-
 
 
     // Send a ping to confirm a successful connection
